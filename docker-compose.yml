@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: mongo:7.0-rc-jammy
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: checker
+    volumes:
+      - mongo_data:/data/db
+      - ./init/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
+
+volumes:
+  mongo_data:
