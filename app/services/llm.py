@@ -1,8 +1,12 @@
-from ollama import chat
-import json, pathlib
+import json
+import os
+import pathlib
+
+from ollama import Client
 
 from app.models.AssessmentResult import AssessmentResult
 
+ollama_client = Client(host=os.getenv("OLLAMA_HOST", "http://localhost:11434"))
 
 def load_file(folder: str, file_id: str) -> str:
     path = pathlib.Path(f"./data/{folder}/{file_id}.json")
@@ -22,7 +26,7 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
         candidate_answer=candidate_answer
     )
 
-    response = chat(
+    response = ollama_client.chat(
         model="qwen2.5-coder:7b",
         messages=[
             {

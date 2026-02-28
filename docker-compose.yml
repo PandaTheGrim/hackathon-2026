@@ -9,5 +9,34 @@ services:
       - mongo_data:/data/db
       - ./init/mongo-init.js:/docker-entrypoint-initdb.d/init.js:ro
 
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    entrypoint: [ "/bin/sh", "-c", "ollama serve & until ollama list > /dev/null 2>&1; do sleep 2; done && ollama pull qwen2.5-coder:7b && wait" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "ollama list | grep -q qwen2.5-coder" ]
+      interval: 15s
+      timeout: 10s
+      retries: 40
+      start_period: 600s
+
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: mongodb://mongodb:27017
+      DB_NAME: checker
+      OLLAMA_HOST: http://ollama:11434
+    depends_on:
+      mongodb:
+        condition: service_started
+      ollama:
+        condition: service_healthy
+
 volumes:
   mongo_data:
+  ollama_data:
