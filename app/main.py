@@ -4,6 +4,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, APIRouter
 
 from app.routes.check import check_assignment
+from app.routes.results import get_results
+from app.routes.upload import upload_submission
 from app.services.db import client
 from app.services.llm import ollama_client
 
@@ -17,7 +19,7 @@ async def lifespan(_: FastAPI):
             if any("qwen2.5-coder" in m.model for m in models):
                 print("Ollama OK")
                 break
-        except Exception:
+        except Exception:  # noqa
             pass
         time.sleep(3)
 
@@ -35,5 +37,8 @@ app = FastAPI(
 
 router = APIRouter(prefix="/api/v1", tags=["check"])
 router.add_api_route("/check", check_assignment, methods=["POST"])
+router.add_api_route("/upload", upload_submission, methods=["POST"])
+router.add_api_route("/results/{candidate_id}", get_results, methods=["GET"])
+router.add_api_route("/results/{candidate_id}/{result_id}", get_results, methods=["GET"])
 
 app.include_router(router)

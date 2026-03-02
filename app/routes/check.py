@@ -15,6 +15,7 @@ def check_assignment(request: CheckRequest):
 
     doc = result.model_dump()
     doc.update({
+        "candidate_id": request.candidate_id,
         "task_id": request.task_id,
         "reference_answer_id": request.reference_answer_id,
         "prompt_id": request.prompt_id,
