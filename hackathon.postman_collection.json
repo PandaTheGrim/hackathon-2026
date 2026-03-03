@@ -1,0 +1,109 @@
+{
+  "info": {
+    "_postman_id": "3dc99e0b-3e6f-4127-aadf-ddfd2202a7f0",
+    "name": "hackathon",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "951374"
+  },
+  "item": [
+    {
+      "name": "check",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"candidate_id\": \"2\",\r\n    \"question_number\": \"4\",\r\n    \"task_id\": \"task_001\",\r\n    \"reference_answer_id\": \"reference_answer_001\",\r\n    \"prompt_id\": \"default_v1\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/check",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "check"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "upload",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "candidate_id",
+              "value": "2",
+              "type": "text",
+              "uuid": "69eed427-83c9-4088-9ac1-6d868e594d5c"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "27c9c590-da01-401e-afe0-c83ed8ab9bc5",
+              "src": "/C:/Users/Ingvar/Desktop/1.docx"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/upload",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "export/results",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/v1/export/results",
+          "protocol": "http",
+          "host": [
+            "127",
+            "0",
+            "0",
+            "1"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "v1",
+            "export",
+            "results"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
