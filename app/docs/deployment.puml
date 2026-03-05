@@ -1,0 +1,20 @@
+@startuml
+title Развертывание системы (Docker)
+
+node "Хост-машина" {
+
+  node "Docker" {
+
+    node "Контейнер приложения\nFastAPI" as App
+
+    node "Контейнер MongoDB" as Mongo
+
+    node "Контейнер Ollama\nLLM + модель" as Ollama
+  }
+
+}
+
+App --> Mongo : MONGO_URL
+App --> Ollama : OLLAMA_HOST
+
+@enduml

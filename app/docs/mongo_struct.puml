@@ -1,0 +1,28 @@
+@startuml
+title Структура данных MongoDB
+
+entity "submissions\n(ответы кандидатов)" {
+  _id : ObjectId
+  candidate_id : string
+  raw_text : string
+  answers : object
+  created_at : datetime
+}
+
+entity "results\n(результаты проверки)" {
+  _id : ObjectId
+  candidate_id : string
+  question_number : string
+  task_id : string
+  reference_answer_id : string
+  prompt_id : string
+  score : int
+  criteria : object
+  feedback_for_candidate : string
+  feedback_for_team : string
+  created_at : datetime
+}
+
+submissions ||--o{ results : candidate_id
+
+@enduml

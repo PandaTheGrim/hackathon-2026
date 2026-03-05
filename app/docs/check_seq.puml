@@ -1,0 +1,37 @@
+@startuml
+title Проверка задания кандидата
+
+actor "Пользователь / Команда УЦ" as User
+participant "API FastAPI\n/api/v1/check" as API
+database "MongoDB\nsubmissions" as Submissions
+participant "LLM сервис\nrun_check()" as LLM
+participant "Ollama\nмодель LLM" as Ollama
+database "MongoDB\nresults" as Results
+
+User -> API : POST /check\n(candidate_id, question_number,\ntask_id, reference_answer_id)
+
+API -> Submissions : найти ответы кандидата
+Submissions --> API : submission
+
+API -> LLM : run_check(...)
+
+alt есть analysis prompt
+    LLM -> Ollama : анализ ответа кандидата
+    Ollama --> LLM : JSON анализа
+end
+
+LLM -> Ollama : оценка задания\n(grading prompt)
+Ollama --> LLM : AssessmentResult
+
+alt есть feedback prompt
+    LLM -> Ollama : улучшение обратной связи
+    Ollama --> LLM : feedback JSON
+end
+
+LLM --> API : результат проверки
+
+API -> Results : сохранить результат
+Results --> API : OK
+
+API --> User : JSON с оценкой и обратной связью
+@enduml

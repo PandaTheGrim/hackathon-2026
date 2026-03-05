@@ -1,0 +1,21 @@
+@startuml
+title Загрузка файла с ответами кандидата
+
+actor "Пользователь / Команда УЦ" as User
+participant "API FastAPI\n/api/v1/upload" as API
+participant "Извлечение текста\nextract_text()" as Extractor
+participant "Парсер ответов\nparse_submission()" as Parser
+database "MongoDB\nколлекция submissions" as DB
+
+User -> API : POST /upload\n(candidate_id, файл)
+API -> Extractor : extract_text(файл)
+Extractor --> API : raw_text
+
+API -> Parser : parse_submission(raw_text)
+Parser --> API : answers {номер_вопроса и текст}
+
+API -> DB : insert_one({candidate_id, raw_text,\nanswers, created_at})
+DB --> API : OK
+
+API --> User : список найденных вопросов\nи извлечённые ответы
+@enduml

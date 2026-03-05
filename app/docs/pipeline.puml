@@ -1,0 +1,57 @@
+@startuml
+title Конвейер обработки ответа кандидата (Pipeline)
+
+actor "Пользователь / Команда УЦ" as User
+
+participant "API FastAPI" as API
+participant "Извлечение текста\nextract_text()" as Extract
+participant "Парсер\nparse_submission()" as Parse
+database "MongoDB\nsubmissions" as SubDB
+
+participant "LLM анализ\nanalysis prompt" as LLM_A
+participant "LLM оценка\ngrading prompt" as LLM_G
+participant "LLM редактура\nfeedback prompt" as LLM_F
+participant "Ollama\nLLM сервер" as Ollama
+
+database "MongoDB\nresults" as ResDB
+participant "Экспорт CSV\n/api/v1/export/results" as Export
+
+== Загрузка ответа ==
+User -> API : POST /upload (candidate_id, файл)
+API -> Extract : extract_text(файл)
+Extract --> API : raw_text
+
+API -> Parse : parse_submission(raw_text)
+Parse --> API : answers {номер в текст}
+
+API -> SubDB : сохранить submission
+SubDB --> API : OK
+
+== Проверка задания ==
+User -> API : POST /check
+API -> SubDB : получить ответы кандидата
+SubDB --> API : submission
+
+API -> LLM_A : подготовить анализ
+LLM_A -> Ollama : analysis prompt
+Ollama --> LLM_A : analysis_json
+
+API -> LLM_G : оценка задания
+LLM_G -> Ollama : grading prompt
+Ollama --> LLM_G : AssessmentResult
+
+API -> LLM_F : улучшить обратную связь
+LLM_F -> Ollama : feedback prompt
+Ollama --> LLM_F : feedback JSON
+
+API -> ResDB : сохранить результат
+ResDB --> API : OK
+API --> User : JSON результата
+
+== Выгрузка результатов ==
+User -> Export : GET /export/results
+Export -> ResDB : запрос результатов
+ResDB --> Export : документы
+Export --> User : CSV файл
+
+@enduml

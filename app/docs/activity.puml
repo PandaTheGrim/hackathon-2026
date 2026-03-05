@@ -1,0 +1,63 @@
+@startuml
+title Pipeline проверки задания (Activity Diagram)
+
+start
+
+:POST /api/v1/upload;
+:Сохранить загруженный файл\nво временную папку uploads/;
+:extract_text()\nизвлечь raw_text из TXT/PDF/DOCX;
+:parse_submission()\nразделить raw_text на ответы по заданиям;
+:Сохранить документ submission\nв MongoDB.submissions;
+:Ответ API: candidate_id,\nquestions_found,\nanswers;
+
+:POST /api/v1/check;
+:Найти submission по candidate_id\nв MongoDB.submissions;
+
+if (submission найден?) then (да)
+  :Достать ответ кандидата\nanswers[question_number];
+
+  if (ответ найден?) then (да)
+    :Загрузить task_text\nиз data/tasks/{task_id}.json;
+    :Загрузить эталон\nиз data/reference_answers/{ref_id}.json\n(включая key_points);
+
+    if (Есть файл промпта\n{prompt_id}_analysis.txt ?) then (да)
+      :Сформировать analysis_prompt\n(task + reference + candidate_answer);
+      :Отправить analysis_prompt в Ollama\nollama_client.chat(...);
+      :Получить ответ модели\n(строка JSON анализа);
+      :Сохранить analysis_json\n(как текст/строку);
+    else (нет)
+      :analysis_json = null;
+    endif
+
+    :Прочитать основной промпт\n{prompt_id}.txt (grading);
+    :Сформировать grading_prompt\n(task + reference + candidate_answer\n+ analysis_json если есть);
+    :Отправить grading_prompt в Ollama\nollama_client.chat(format=AssessmentResult.schema);
+    :Получить ответ модели\n(строка JSON результата);
+    :Провалидировать JSON\nAssessmentResult.model_validate_json();
+
+    if (Есть файл промпта\n{prompt_id}_feedback.txt ?) then (да)
+      :Сформировать feedback_prompt\n(вход: grading_json из AssessmentResult);
+      :Отправить feedback_prompt в Ollama\nollama_client.chat(...);
+      :Получить ответ модели\n(строка JSON с двумя полями);
+      :Распарсить JSON\nsafe_json_loads();
+      :Заменить поля\nfeedback_for_team / feedback_for_candidate;
+    else (нет)
+      :Оставить feedback как есть;
+    endif
+
+    :Сохранить результат проверки\nв MongoDB.results;
+    :Ответ API: JSON результата проверки;
+  else (нет)
+    :Ответ API: 404\n"Ответ на задание не найден";
+  endif
+
+else (нет)
+  :Ответ API: 404\n"Результаты кандидата не найдены";
+endif
+
+:GET /api/v1/export/results;
+:Прочитать результаты из MongoDB.results;
+:Сформировать CSV и вернуть stream;
+
+stop
+@enduml

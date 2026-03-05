@@ -1,0 +1,34 @@
+@startuml
+title Архитектура сервиса проверки заданий
+
+package "FastAPI приложение" {
+
+  [main.py\nинициализация API] as Main
+
+  package "Маршруты API" {
+    [upload.py\nзагрузка файла]
+    [check.py\nпроверка задания]
+    [results.py\nполучение результатов]
+    [export_results_csv.py\nвыгрузка CSV]
+  }
+
+  package "Сервисы" {
+    [extractor.py\nизвлечение текста]
+    [parser.py\nразделение ответов]
+    [llm.py\nработа с LLM]
+    [db.py\nподключение к MongoDB]
+  }
+
+}
+
+database "MongoDB" as Mongo
+component "Ollama\nLLM сервер" as Ollama
+
+[check.py\nпроверка задания] --> [llm.py\nработа с LLM]
+[upload.py\nзагрузка файла] --> [extractor.py\nизвлечение текста]
+[upload.py\nзагрузка файла] --> [parser.py\nразделение ответов]
+
+[db.py\nподключение к MongoDB] --> Mongo
+[llm.py\nработа с LLM] --> Ollama
+
+@enduml

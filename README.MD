@@ -4,3 +4,16 @@
 3. Запускаем само приложение, используя [main.py](app/main.py) (например через uvicorn app.main:app --reload)
 4. Примеры запросов приложены в виде коллекции для Postman в
    файле [hackathon.postman_collection.json](hackathon.postman_collection.json)
+
+## Архитектура системы
+
+Диаграммы архитектуры находятся в `docs/diagrams`.
+
+### Поток загрузки ответа
+![Upload](docs/diagrams/upload_seq.png)
+
+### Поток проверки задания
+![Check](docs/diagrams/check_seq.png)
+
+### Архитектура компонентов
+![Components](docs/diagrams/components.png)
