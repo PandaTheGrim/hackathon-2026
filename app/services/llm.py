@@ -35,11 +35,11 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
     analysis_template = read_prompt_optional(f"data/prompts/{prompt_id}_analysis.txt")
     analysis_json = None
     if analysis_template:
-        analysis_prompt = analysis_template.format(
-            task=task["task_text"],
-            reference=json.dumps(reference, ensure_ascii=False),
-            candidate_answer=candidate_answer
-        )
+        analysis_prompt = analysis_template % {
+            "task": task["task_text"],
+            "reference": json.dumps(reference, ensure_ascii=False),
+            "candidate_answer": candidate_answer
+        }
         analysis_resp = ollama_client.chat(
             model="qwen2.5-coder:7b",
             messages=[
@@ -53,11 +53,11 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
     prompt_template = pathlib.Path(f"data/prompts/{prompt_id}.txt").read_text(encoding="utf-8")
 
     # формируем основной промпт, передавая в него результаты анализа, если они есть
-    prompt = prompt_template.format(
-        task=task["task_text"],  # noqa
-        reference=json.dumps(reference, ensure_ascii=False),
-        candidate_answer=candidate_answer
-    )
+    prompt = prompt_template % {
+        "task": task["task_text"],
+        "reference": json.dumps(reference, ensure_ascii=False),
+        "candidate_answer": candidate_answer
+    }
     if analysis_json:
         prompt += "\n\n### Результат анализа (JSON)\n" + analysis_json
 

@@ -1,0 +1,4 @@
+{
+  "task_number": 3,
+  "task_text": "Требуется проверить запрос на корректность и исправить там ошибки, если они есть. \nСуществует учебная схема HR, содержащая таблицы: employees, departments и locations \nНеобходимо получить все отделы, расположенные в Сеуле в которых все сотрудники, не \nимеющие менеджера, зарабатывают в общей сложности более 100000. \nДля решения задачи был написан следующий запрос: \n\nSELECT \nDEPARTMENT_ID, \nDEPARTMENT_NAME,   \nSUM(SALARY) TOTAL_SALARY \nFROM \nEMPLOYEE E,  \nDEPARTMENTS D \nWHERE E.DEPARTMENT_ID = D.DEPARTMENT_ID  \nAND MANAGER_ID = NULL \nAND LOCATION_ID = (SELECT LOCATION_ID \nFROM LOCATIONS  \nWHERE CITY = 'SEOUL') \nAND SUM(SALARY) >= 100000 \nGROUP BY DEPARTMENT_NAME"
+}
