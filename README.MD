@@ -10,10 +10,10 @@
 Диаграммы архитектуры находятся в `docs/diagrams`.
 
 ### Поток загрузки ответа
-![Upload](docs/diagrams/upload_seq.png)
+![Upload](app/docs/diagrams/upload_seq.png)
 
 ### Поток проверки задания
-![Check](docs/diagrams/check_seq.png)
+![Check](app/docs/diagrams/check_seq.png)
 
 ### Архитектура компонентов
-![Components](docs/diagrams/components.png)
+![Components](app/docs/diagrams/components.png)
