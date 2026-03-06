@@ -35,11 +35,11 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
     analysis_template = read_prompt_optional(f"data/prompts/{prompt_id}_analysis.txt")
     analysis_json = None
     if analysis_template:
-        analysis_prompt = analysis_template.format(
-            task=task["task_text"],
-            reference=json.dumps(reference, ensure_ascii=False),
-            candidate_answer=candidate_answer
-        )
+        analysis_prompt = analysis_template % {
+            "task": task["task_text"],
+            "reference": json.dumps(reference, ensure_ascii=False),
+            "candidate_answer": candidate_answer
+        }
         analysis_resp = ollama_client.chat(
             model="qwen2.5-coder:7b",
             messages=[
@@ -56,8 +56,10 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
     prompt = prompt_template.format(
         task=task["task_text"],  # noqa
         reference=json.dumps(reference, ensure_ascii=False),
-        candidate_answer=candidate_answer
+        candidate_answer=candidate_answer,
+        analysis_json=analysis_json or "{}"
     )
+
     if analysis_json:
         prompt += "\n\n### Результат анализа (JSON)\n" + analysis_json
 
@@ -82,9 +84,10 @@ def run_check(task_id: str, ref_id: str, prompt_id: str, candidate_answer: str) 
     # Если есть шаблон для генерации фидбека, то генерируем фидбек на основе оценки и передаем его в результат
     feedback_template = read_prompt_optional(f"data/prompts/{prompt_id}_feedback.txt")
     if feedback_template:
-        fb_prompt = feedback_template.format(
-            grading_json=result.model_dump_json(ensure_ascii=False)
-        )
+        fb_prompt = feedback_template % {
+            "grading_json": result.model_dump_json(ensure_ascii=False)
+        }
+
         fb_resp = ollama_client.chat(
             model="qwen2.5-coder:7b",
             messages=[

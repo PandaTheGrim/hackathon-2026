@@ -6,7 +6,7 @@ from fastapi import HTTPException, UploadFile, File, Form
 
 from app.services.db import submissions
 from app.services.extractor import extract_text
-from app.services.parser import parse_submission
+from app.services.parser import parse_submission, ai_parse_submission
 
 UPLOAD_DIR = pathlib.Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
@@ -30,8 +30,10 @@ def upload_submission(
         tmp_path.unlink(missing_ok=True)
 
     answers = parse_submission(raw_text)
-    if not answers:
-        raise HTTPException(status_code=422, detail="Не удалось выделить задания из файла")
+    if not answers or len(answers) != 4:
+        answers = ai_parse_submission(raw_text)
+        if not answers:
+            raise HTTPException(status_code=422, detail="Не удалось выделить задания из файла")
 
     doc = {
         "candidate_id": str(candidate_id),
