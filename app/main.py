@@ -1,7 +1,10 @@
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, APIRouter
+from starlette.responses import FileResponse
+from starlette.staticfiles import StaticFiles
 
 from app.routes.check import check_assignment
 from app.routes.export_results_csv import export_results_csv
@@ -10,11 +13,12 @@ from app.routes.upload import upload_submission
 from app.services.db import client
 from app.services.llm import ollama_client
 
+BASE_DIR = Path(__file__).resolve().parent
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     print("Checking dependencies:")
-    deadline = time.time() + 300 # время ожидания доступности ollama с моделью, в секундах
     while True:
         try:
             models = ollama_client.list().models
@@ -44,5 +48,13 @@ router.add_api_route("/results/{candidate_id}", get_results, methods=["GET"])
 router.add_api_route("/results/{candidate_id}/{result_id}", get_results, methods=["GET"])
 router.add_api_route("/export/results", export_results_csv, methods=["GET"])
 router.add_api_route("/export/results/{candidate_id}", export_results_csv, methods=["GET"])
+# статика (веб-морда)
+frontend = APIRouter()
+frontend.add_api_route(
+    "/submit_form",
+    lambda: FileResponse(BASE_DIR / "static" / "index.html"),
+    methods=["GET"],
+)
 
 app.include_router(router)
+app.include_router(frontend)

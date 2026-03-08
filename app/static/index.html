@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <title>Проверка заданий</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+</head>
+<body>
+<main class="container">
+    <h1>Проверка заданий</h1>
+    <!-- Форма загрузки файла -->
+    <section>
+        <h2>Загрузка решения</h2>
+        <form id="upload-form">
+            <label>
+                ID кандидата
+                <input type="text" name="candidate_id" placeholder="123">
+            </label>
+
+            <label>
+                Файл с ответами
+                <input type="file" name="file" accept=".txt,.doc,.docx,.pdf">
+            </label>
+
+            <button type="submit">Загрузить</button>
+        </form>
+    </section>
+    <!-- Форма проверки и просмотра результатов -->
+    <section style="margin-top: 2rem;">
+        <h2>Проверка и результаты</h2>
+        <form id="check-form">
+            <label>
+                ID кандидата
+                <input type="text" name="candidate_id" placeholder="123">
+            </label>
+
+            <label>
+                Номер задания (task_id)
+                <input type="text" name="task_id" value="task_001">
+            </label>
+
+            <label>
+                Номер шаблона проверки (reference_answer_id)
+                <input type="text" name="reference_answer_id" value="reference_answer_001">
+            </label>
+
+            <label>
+                Номер промпта (prompt_id)
+                <input type="text" name="prompt_id" value="default_v1">
+            </label>
+
+            <label>
+                Номер вопроса (question_number)
+                <input type="text" name="question_number" value="1">
+            </label>
+
+            <button type="submit">Проверить</button>
+        </form>
+
+        <pre id="results-output" style="margin-top: 1rem;">{}</pre>
+    </section>
+</main>
+
+<script>
+    const API_BASE = 'http://127.0.0.1:8000/api/v1';
+
+    const uploadForm = document.getElementById('upload-form');
+    const checkForm = document.getElementById('check-form');
+    const resultsEl = document.getElementById('results-output');
+
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(uploadForm);
+        const candidateId = formData.get('candidate_id');
+        const file = formData.get('file');
+
+        if (!candidateId.trim()) {
+            alert('Нужно указать candidate_id');
+            return;
+        }
+        if (!file) {
+            alert('Нужно выбрать файл');
+            return;
+        }
+
+        try {
+            const resp = await fetch(`${API_BASE}/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!resp.ok) {
+                const text = await resp.text();
+                alert(`Ошибка загрузки: ${resp.status} ${text}`);
+                return;
+            }
+
+            await resp.json();
+            alert('Файл загружен');
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка сети при загрузке');
+        }
+    });
+
+    checkForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const fd = new FormData(checkForm);
+
+        const candidateId = (fd.get('candidate_id') || '').trim();
+        if (!candidateId) {
+            alert('Нужно указать candidate_id');
+            return;
+        }
+
+        const payload = {
+            candidate_id: candidateId,
+            task_id: String(fd.get('task_id')),
+            reference_answer_id: String(fd.get('reference_answer_id')),
+            prompt_id: String(fd.get('prompt_id')),
+            question_number: String(fd.get('question_number')),
+        };
+
+        try {
+            const checkResp = await fetch(`${API_BASE}/check`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload),
+            });
+
+            if (!checkResp.ok) {
+                const text = await checkResp.text();
+                alert(`Ошибка проверки: ${checkResp.status} ${text}`);
+                return;
+            }
+
+            const resultsResp = await fetch(`${API_BASE}/results/${candidateId}`);
+            if (!resultsResp.ok) {
+                const text = await resultsResp.text();
+                alert(`Ошибка получения результатов: ${resultsResp.status} ${text}`);
+                return;
+            }
+
+            const results = await resultsResp.json();
+            resultsEl.textContent = JSON.stringify(results, null, 2);
+        } catch (err) {
+            console.error(err);
+            alert('Ошибка сети при проверке/запросе результатов');
+        }
+    });
+</script>
+</body>
+</html>
