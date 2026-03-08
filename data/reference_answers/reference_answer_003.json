@@ -1,0 +1,15 @@
+{
+  "answer": "В запросе есть несколько ошибок/неточностей.\n\nКлючевые исправления:\n1) Таблица EMPLOYEE должна быть EMPLOYEES.\n2) Сравнение с NULL нужно писать как IS NULL, а не = NULL.\n3) Условие по агрегату SUM(SALARY) должно быть в HAVING, а не в WHERE.\n4) По условию задачи нужно строго 'более 100000', значит > 100000, а не >=.\n5) Лучше использовать явные JOIN.\n6) Фильтр по городу лучше делать через JOIN с LOCATIONS (через DEPARTMENTS.location_id), и можно привести к верхнему регистру.\n7) В SELECT по задаче достаточно вернуть отделы (department_name), без id и суммы (но это не критично, если заказчику не мешает).\n\nПример корректного запроса (вариант):\nSELECT d.department_name\nFROM departments d\nJOIN locations l ON l.location_id = d.location_id\nJOIN employees e ON e.department_id = d.department_id\nWHERE e.manager_id IS NULL\n  AND UPPER(l.city) = 'SEOUL'\nGROUP BY d.department_name\nHAVING SUM(e.salary) > 100000;\n",
+  "key_points": [
+    "employees",
+    "is null",
+    "having",
+    "sum",
+    "> 100000",
+    "join",
+    "locations",
+    "Seoul",
+    "group by",
+    "alias"
+  ]
+}
