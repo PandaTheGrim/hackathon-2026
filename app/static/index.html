@@ -63,7 +63,7 @@
 </main>
 
 <script>
-    const API_BASE = 'http://127.0.0.1:8000/api/v1';
+    const API_BASE = '/api/v1';
 
     const uploadForm = document.getElementById('upload-form');
     const checkForm = document.getElementById('check-form');
@@ -85,6 +85,12 @@
             return;
         }
 
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true; // Делаем кнопку неактивной
+        submitBtn.textContent = 'Загрузка...';
+        // Выводим текст с просьбой ожидания
+        resultsEl.textContent = '⏳ Файл загружается и обрабатывается. Это может занять несколько минут.';
+
         try {
             const resp = await fetch(`${API_BASE}/upload`, {
                 method: 'POST',
@@ -97,11 +103,17 @@
                 return;
             }
 
-            await resp.json();
-            alert('Файл загружен');
+            const data = await resp.json();
+
+            resultsEl.textContent = JSON.stringify(data, null, 2);
+            alert('Файл успешно загружен и обработан');
         } catch (err) {
             console.error(err);
             alert('Ошибка сети при загрузке');
+
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Загрузить';
         }
     });
 
@@ -124,6 +136,12 @@
             question_number: String(fd.get('question_number')),
         };
 
+        resultsEl.textContent = '⏳ Проверка выполняется... Это может занять несколько минут.';
+
+        const submitBtn = checkForm.querySelector('button[type="submit"]');
+        submitBtn.disabled = true; // Делаем кнопку неактивной
+        submitBtn.textContent = 'Проверка...';
+
         try {
             const checkResp = await fetch(`${API_BASE}/check`, {
                 method: 'POST',
@@ -137,18 +155,21 @@
                 return;
             }
 
-            const resultsResp = await fetch(`${API_BASE}/results/${candidateId}`);
-            if (!resultsResp.ok) {
-                const text = await resultsResp.text();
-                alert(`Ошибка получения результатов: ${resultsResp.status} ${text}`);
+
+            const checkData = await checkResp.json();
+
+            if (checkData && (checkData.results || checkData.score !== undefined)) {
+                resultsEl.textContent = JSON.stringify(checkData, null, 2);
                 return;
             }
 
-            const results = await resultsResp.json();
-            resultsEl.textContent = JSON.stringify(results, null, 2);
+
         } catch (err) {
             console.error(err);
             alert('Ошибка сети при проверке/запросе результатов');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Проверить';
         }
     });
 </script>
