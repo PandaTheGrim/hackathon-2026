@@ -25,6 +25,8 @@
 
             <button type="submit">Загрузить</button>
         </form>
+
+        <pre id="upload-output" style="margin-top:1rem; background:#f6f8fa; padding:10px;"></pre>
     </section>
     <!-- Форма проверки и просмотра результатов -->
     <section style="margin-top: 2rem;">
@@ -66,6 +68,8 @@
     const API_BASE = '/api/v1';
 
     const uploadForm = document.getElementById('upload-form');
+    const uploadEl = document.getElementById('upload-output');
+
     const checkForm = document.getElementById('check-form');
     const resultsEl = document.getElementById('results-output');
 
@@ -88,8 +92,16 @@
         const submitBtn = uploadForm.querySelector('button[type="submit"]');
         submitBtn.disabled = true; // Делаем кнопку неактивной
         submitBtn.textContent = 'Загрузка...';
+        uploadEl.textContent = "";
+
         // Выводим текст с просьбой ожидания
-        resultsEl.textContent = '⏳ Файл загружается и обрабатывается. Это может занять несколько минут.';
+
+        let dots = 0;
+        const loader = setInterval(() => {
+            dots = (dots + 1) % 4;
+            uploadEl.textContent =
+                "⏳ Файл загружается и обрабатывается" + ".".repeat(dots);
+        }, 500);
 
         try {
             const resp = await fetch(`${API_BASE}/upload`, {
@@ -105,13 +117,14 @@
 
             const data = await resp.json();
 
-            resultsEl.textContent = JSON.stringify(data, null, 2);
+            uploadEl.textContent = JSON.stringify(data, null, 2);
             alert('Файл успешно загружен и обработан');
         } catch (err) {
             console.error(err);
             alert('Ошибка сети при загрузке');
 
         } finally {
+            clearInterval(loader);
             submitBtn.disabled = false;
             submitBtn.textContent = 'Загрузить';
         }
